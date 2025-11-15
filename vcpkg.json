@@ -1,6 +1,16 @@
 {
+<<<<<<< HEAD
   "dependencies": [
     "box2d",
     "sfml"
   ]
 }
+=======
+    "name": "drone-control",
+    "description": "Simple project to learn about different control ideas.",
+    "license": "MIT",
+    "dependencies": [
+        "box2d"
+    ]
+}
+>>>>>>> a1593d9 (create initial structure)
