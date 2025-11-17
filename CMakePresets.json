@@ -1,13 +1,17 @@
 {
-    "version": 8,
+    "version": 3,
     "configurePresets": [
         {
-            "name": "drone_control_vcpkg",
+            "name": "Debug",
+            "description": "Default settings for my cmake projects",
+            "hidden": false,
             "generator": "Visual Studio 17 2022",
-            "binaryDir": "${sourceDir}/build/",
+            "binaryDir": "${workspaceFolder}/build",
             "cacheVariables": {
+                "CMAKE_BUILD_TYPE": "Debug",
+                "CMAKE_EXPORT_COMPILE_COMMANDS": "YES",
                 "CMAKE_TOOLCHAIN_FILE": "c:/vcpkg/scripts/buildsystems/vcpkg.cmake",
-                "CMAKE_INSTALL_PREFIX": "${sourceDir}/install/"
+                "VCPKG_TARGET_TRIPLET":"x64-windows"
             }
         }
     ]

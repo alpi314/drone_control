@@ -16,6 +16,8 @@ static inline sf::Vector2f worldToScreen(const b2Vec2& v, unsigned winH) {
 }
 
 int main() {
+    std::cout << "Starting SFML window...\n";
+
     const unsigned WIN_W = 800, WIN_H = 600;
     unsigned int bitsPerPixel = 32;
     sf::Vector2u windowSize(WIN_W, WIN_H);
@@ -99,6 +101,7 @@ int main() {
     const int subSteps = 1;
 
     // main loop
+    std::cout << "Starting simulation loop. Close window to exit.\n";
     while (window.isOpen()) {
         std::optional<sf::Event> ev;
         while (ev = window.pollEvent()) {
