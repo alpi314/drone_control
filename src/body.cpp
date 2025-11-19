@@ -1,4 +1,5 @@
 #include <box2d/box2d.h>
+#include <vector>
 #include "../include/body.hpp"
 
 body::body(b2WorldId worldId, b2Vec2 position, float height, float width, b2BodyType type) {
@@ -17,4 +18,16 @@ body::body(b2WorldId worldId, b2Vec2 position, float height, float width, b2Body
 
 b2Polygon body::getPolygon() {
     return b2Shape_GetPolygon(shapeId);;
+}
+
+std::vector<b2Vec2> body::getTransformedVertices() {
+    b2Polygon polygon = getPolygon();
+    std::vector<b2Vec2> transformedVertices;
+    
+    for (int i = 0; i < polygon.count; ++i) {
+        b2Vec2 localVertex = polygon.vertices[i];
+        b2Vec2 worldVertex = b2Body_GetWorldPoint(bodyId, localVertex);
+        transformedVertices.push_back(worldVertex);
+    }
+    return transformedVertices;
 }

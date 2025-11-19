@@ -14,11 +14,14 @@ private:
     sf::Color shapeColor;
     std::vector<body*> shapes;
 public:
-    draw(); // constructor
+    draw(unsigned int width, unsigned int height); // constructor
     ~draw(); // destructor
     void clear();
     void addShape(body& shape);
     void drawAll();
-    sf::ConvexShape convexShape(const b2Polygon& shape, sf::Color color);
+    sf::ConvexShape convexShape(const std::vector<b2Vec2>& shape, sf::Color color);
     sf::Vector2f toWindowLocation(float x, float y);
+    bool isOpen();
+    void close();
+    std::optional<sf::Event> pollEvent();
 };
