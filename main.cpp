@@ -67,14 +67,14 @@ int main() {
 
             if (const auto* keyPressed = event->getIf<sf::Event::KeyPressed>()) {
                 if (keyPressed->code == sf::Keyboard::Key::Space) {
-                    testDrone.applyThrustAll(100000.0f); // both motors
+                    testDrone.applyThrustAll(1000000.0f); // both motors
                 }
                 else if (keyPressed->scancode == sf::Keyboard::Scancode::Left) {
-                    testDrone.applyThrust(0, 100000.0f); // left motor
-                    testDrone.applyThrust(1, -100000.0f); // right motor
+                    testDrone.applyThrust(0, 1000000.0f); // left motor
+                    testDrone.applyThrust(1, -1000000.0f); // right motor
                 } else if (keyPressed->scancode == sf::Keyboard::Scancode::Right) {
-                    testDrone.applyThrust(0, -100000.0f); // left motor
-                    testDrone.applyThrust(1, 100000.0f); // right motor
+                    testDrone.applyThrust(0, -1000000.0f); // left motor
+                    testDrone.applyThrust(1, 1000000.0f); // right motor
                 }
             }
         }
