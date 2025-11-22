@@ -11,6 +11,7 @@
 
 #include "include/draw.hpp"
 #include "include/body.hpp"
+#include "include/drone.hpp"
 
 volatile std::sig_atomic_t g_stop = 0;
 extern "C" void sigint_handler(int) {
@@ -20,7 +21,6 @@ extern "C" void sigint_handler(int) {
 int main() {
     std::signal(SIGINT, sigint_handler);
     std::signal(SIGTERM, sigint_handler);
-    sf::Event event = sf::Event::Closed();
 
     unsigned int windowWidth = 800;
     unsigned int windowHeight = 600;
@@ -38,23 +38,54 @@ int main() {
     b2WorldId worldId = b2CreateWorld(&worldDef);
 
     // Create Bodies
-    body box = body(worldId, {halfWidth, halfHeight * 3 / 2}, 50.0f, 50.0f, b2_dynamicBody);
-    drawer.addShape(box);
+    body droneBody = body(worldId, {halfWidth, halfHeight * 3 / 2}, 50.0f, 50.0f, b2_dynamicBody);
+    drawer.addShape(droneBody);
 
     body ground = body(worldId, {halfWidth,  5.0f}, 10.0f, 2 * windowWidth, b2_staticBody);
     drawer.addShape(ground);
 
-    // Simulation loop
+    // Create Drone
+    std::vector<b2Vec2> motorLocal = { 
+        { 25.0f, 40.0f }, { -25.0f, 40.0f }
+    };
+    std::vector<b2Vec2> motorDirections = {
+        { 0.0f, 1.0f }, { 0.0f, 1.0f }
+    };
+    drone testDrone = drone(&droneBody, motorLocal, motorDirections);
+
+    // Simulation loop (replace your previous loop)
     const float timeStep = 1.0f / 30.0f;
     const int32_t subStepCount = 6;
-    constexpr std::chrono::duration<double> DT{1.0 / 30.0};
+
     while (drawer.isOpen() && !g_stop) {
-        std::optional<sf::Event> event = drawer.pollEvent();
-        if (event && event->is<sf::Event::Closed>()) { drawer.close(); }
-        
+        if (std::optional<sf::Event> event = drawer.pollEvent()) {
+                if (event->getIf<sf::Event::Closed>()) {
+                    drawer.close();
+                    g_stop = 1;
+                    break;
+                }
+
+            if (const auto* keyPressed = event->getIf<sf::Event::KeyPressed>()) {
+                if (keyPressed->code == sf::Keyboard::Key::Space) {
+                    testDrone.applyThrustAll(100000.0f); // both motors
+                }
+                else if (keyPressed->scancode == sf::Keyboard::Scancode::Left) {
+                    testDrone.applyThrust(0, 100000.0f); // left motor
+                    testDrone.applyThrust(1, -100000.0f); // right motor
+                } else if (keyPressed->scancode == sf::Keyboard::Scancode::Right) {
+                    testDrone.applyThrust(0, -100000.0f); // left motor
+                    testDrone.applyThrust(1, 100000.0f); // right motor
+                }
+            }
+        }
+
+        // Advance physics
         b2World_Step(worldId, timeStep, subStepCount);
+
+        // Render
         drawer.drawAll();
     }
 
+    if (drawer.isOpen()) drawer.close();
     return 0;
 }

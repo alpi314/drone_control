@@ -5,9 +5,9 @@
 
 class body {
 private:
-    b2BodyId bodyId;
     b2ShapeId shapeId;
 public:
+    b2BodyId bodyId;
     body(b2WorldId worldId, b2Vec2 position, float height, float width, b2BodyType type = b2_staticBody); // constructor
     ~body() = default; // destructor
     b2Polygon getPolygon();
