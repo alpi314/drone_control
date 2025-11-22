@@ -7,7 +7,7 @@ drone::drone(body* droneBody, std::vector<b2Vec2> motorPositions, std::vector<b2
 }
 
 void drone::applyThrust(int motor, b2Vec2 thrustLocation, b2Vec2 thrustVec) {
-    b2Body_ApplyLinearImpulse(droneBody->bodyId, thrustVec, thrustLocation, true);
+    b2Body_ApplyForce(droneBody->bodyId, thrustVec, thrustLocation, true);
 }
 
 void drone::applyThrust(int motor, float thrust) {
