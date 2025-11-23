@@ -1,4 +1,8 @@
+
+
 #include "../include/drone.hpp"
+#include <box2d/box2d.h>
+#include <iostream>
 
 b2Vec2 rotateVector(const b2Vec2& vec, const b2Rot& rot) {
     return {
@@ -11,6 +15,18 @@ drone::drone(body* droneBody, std::vector<b2Vec2> motorPositions, std::vector<b2
     this->droneBody = droneBody;
     this->motorPositions = motorPositions;
     this->motorDirections = motorDirections;
+}
+
+float drone::altitude() {
+    b2Vec2 position = b2Body_GetPosition(droneBody->bodyId);
+    return position.y;
+}
+
+float drone::gravitationalForce() {
+    b2MassData mass = b2Body_GetMassData(droneBody->bodyId);
+    std::cout << "Mass: " << mass.mass << std::endl;
+    const float gravity = 9.81f; // m/s^2
+    return mass.mass * gravity;
 }
 
 void drone::applyThrust(int motor, b2Vec2 thrustLocation, b2Vec2 thrustVec) {
@@ -28,8 +44,11 @@ void drone::applyThrust(int motor, float thrust) {
     applyThrust(motor, thrustLocation, thrustVec);
 }
 
-void drone::applyThrustAll(float thrust) {
-    for (size_t i = 0; i < motorPositions.size(); ++i) {
-        applyThrust(i, thrust);
-    }
+void drone::applyThrustEvenly(float thrust) {
+    std::cout << "Applying total thrust: " << thrust << std::endl;
+    b2Body_ApplyForceToCenter(droneBody->bodyId, {0.0f, thrust}, true);
+    /*size_t n_motors = motorPositions.size();
+    for (size_t i = 0; i < n_motors; ++i) {
+        applyThrust(i, thrust / n_motors);
+    }*/
 }
