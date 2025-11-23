@@ -65,7 +65,7 @@ int main() {
     bool enabled = true;
     float kp = 1.5f; // Proportional gain
     float ki = 0.0001f;  // Integral gain
-    float kd = 1.0f; // Derivative gain
+    float kd = 0.5f; // Derivative gain
     pid::hoverController hover = pid::hoverController(&testDrone, kp, ki, kd);
     std::cout << "PID Hover Controller created with Kp: " << kp << ", Ki: " << ki << ", Kd: " << kd << std::endl;
 

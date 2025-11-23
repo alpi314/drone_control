@@ -24,7 +24,6 @@ float drone::altitude() {
 
 float drone::gravitationalForce() {
     b2MassData mass = b2Body_GetMassData(droneBody->bodyId);
-    std::cout << "Mass: " << mass.mass << std::endl;
     const float gravity = 9.81f; // m/s^2
     return mass.mass * gravity;
 }
@@ -45,10 +44,8 @@ void drone::applyThrust(int motor, float thrust) {
 }
 
 void drone::applyThrustEvenly(float thrust) {
-    std::cout << "Applying total thrust: " << thrust << std::endl;
-    b2Body_ApplyForceToCenter(droneBody->bodyId, {0.0f, thrust}, true);
-    /*size_t n_motors = motorPositions.size();
+    size_t n_motors = motorPositions.size();
     for (size_t i = 0; i < n_motors; ++i) {
         applyThrust(i, thrust / n_motors);
-    }*/
+    }
 }
