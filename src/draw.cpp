@@ -20,9 +20,14 @@ void draw::clear()
     window.clear(backgroundColor);
 }
 
-void draw::addShape(body& shape)
+void draw::addShape(body& shape, sf::Color* color)
 {
     shapes.push_back(&shape);
+    if (color) {
+        shapeColors.push_back(*color);
+    } else {
+        shapeColors.push_back(shapeColor);
+    }
 }
 
 sf::Vector2f draw::toWindowLocation(float x, float y) {
@@ -39,14 +44,22 @@ sf::ConvexShape draw::convexShape(const std::vector<b2Vec2>& shape, sf::Color co
     return polygon;
 }
 
-void draw::drawAll() {
-    draw::clear();
-    for (const auto& shape : shapes) {
-        std::vector<b2Vec2> polygonData = shape->getTransformedVertices();
-        sf::ConvexShape polygon = convexShape(polygonData, shapeColor);
+void draw::drawShapes() {
+    for (size_t i = 0; i < shapes.size(); ++i) {
+        std::vector<b2Vec2> polygonData = shapes[i]->getTransformedVertices();
+        sf::ConvexShape polygon = convexShape(polygonData, shapeColors[i]);
         window.draw(polygon);
     }
+}
+
+void draw::display() {
     window.display();
+}
+
+void draw::drawAll() {
+    draw::clear();
+    drawShapes();
+    display();
 }
 
 void draw::close() {
