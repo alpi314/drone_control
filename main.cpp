@@ -43,18 +43,58 @@ int main() {
     b2WorldId worldId = b2CreateWorld(&worldDef);
     std::cout << "Box2D World created with gravity: " << worldDef.gravity.x << ", " << worldDef.gravity.y << std::endl;
 
-    // Create Bodies
-    body droneBody = body(worldId, {halfWidth, 100.0f}, 50.0f, 50.0f, b2_dynamicBody);
-    drawer.addShape(droneBody);
-    std::cout << "Drone body created at position: " << halfWidth << ", " << 20.0f << std::endl;
+    // Load drone texture
+    sf::Texture droneTexture;
+    std::string texturePath = "../../src/assets/drone.png";
+    if (!droneTexture.loadFromFile(texturePath)) {
+        // Try alternative path if running from project root
+        texturePath = "src/assets/drone.png";
+        if (!droneTexture.loadFromFile(texturePath)) {
+            std::cerr << "Failed to load drone texture!" << std::endl;
+            return 1;
+        }
+    }
+    std::cout << "Loaded drone texture from: " << texturePath << std::endl;
+    sf::Sprite droneSprite(droneTexture);
+    
+    // Get texture size and calculate physics body dimensions
+    sf::Vector2u texSize = droneTexture.getSize();
+    float droneScale = 0.15f; // Scale factor for the sprite
+    float droneWidth = texSize.x * droneScale;
+    float droneHeight = texSize.y * droneScale;
+    
+    // Set sprite origin to center
+    droneSprite.setOrigin(sf::Vector2f(texSize.x / 2.0f, texSize.y / 2.0f));
+    droneSprite.setScale(sf::Vector2f(droneScale, droneScale));
+    
+    std::cout << "Texture size: " << texSize.x << "x" << texSize.y << std::endl;
+    std::cout << "Drone sprite dimensions: " << droneWidth << "x" << droneHeight << std::endl;
+
+    // Create Bodies - match physics box to sprite dimensions
+    // Ground surface is at ~15 (ground center 5 + half height 10), start drone just above it
+    float groundSurface = 15.0f + droneHeight / 2.0f;
+    
+    // Calculate density to maintain similar mass to original 50x50 body
+    // Original area = 50*50 = 2500, original density = 1.0, so original mass ~ 2500
+    float originalArea = 50.0f * 50.0f;
+    float newArea = droneWidth * droneHeight;
+    float adjustedDensity = originalArea / newArea; // Keep mass similar
+    
+    body droneBody = body(worldId, {halfWidth, groundSurface}, droneHeight, droneWidth, b2_dynamicBody, true, adjustedDensity);
+    // Don't add droneBody to drawer - we'll draw the sprite instead
+    std::cout << "Drone body created at position: " << halfWidth << ", " << groundSurface << std::endl;
+    std::cout << "Drone dimensions: " << droneWidth << "x" << droneHeight << ", density: " << adjustedDensity << std::endl;
 
     body ground = body(worldId, {halfWidth,  5.0f}, 10.0f, 2 * windowWidth, b2_staticBody);
     drawer.addShape(ground);
     std::cout << "Ground created at position: " << halfWidth << ", " << 5.0f << std::endl;
 
-    // Create Drone
+    // Create Drone - motor positions at the rotor locations (ends of the arms)
+    // Rotors are at approximately 45% from center on each side based on image
+    float motorOffsetX = droneWidth * 0.45f;
+    float motorOffsetY = droneHeight * 0.3f; // Slightly above center where rotors are
     std::vector<b2Vec2> motorLocal = { 
-        { -20.0f, 25.0f }, { 20.0f, 25.0f }
+        { -motorOffsetX, motorOffsetY }, { motorOffsetX, motorOffsetY }
     };
     std::vector<b2Vec2> motorDirections = {
         { 0.0f, 1.0f }, { 0.0f, 1.0f }
@@ -70,10 +110,10 @@ int main() {
     pid::hoverController hover = pid::hoverController(&testDrone, kp, ki, kd);
     std::cout << "PID Hover Controller created with Kp: " << kp << ", Ki: " << ki << ", Kd: " << kd << std::endl;
 
-    // Target altitude
-    float targetAltitude = 200.0f;
+    // Target altitude - start at ground level
+    float targetAltitude = groundSurface;
     // add line shape to drawer to indicate target altitude
-    body targetLine = body(worldId, {0.0f, targetAltitude}, 2.0f, 2 * windowWidth, b2_kinematicBody, false);
+    body targetLine = body(worldId, {halfWidth, targetAltitude}, 2.0f, 2 * windowWidth, b2_kinematicBody, false);
     sf::Color red = sf::Color(255, 0, 0);
     drawer.addShape(targetLine, &red);
 
@@ -103,13 +143,13 @@ int main() {
                 }
                 if (keyPressed->scancode == sf::Keyboard::Scancode::Up) {
                     targetAltitude += 10.0f;
-                    b2Body_SetTransform(targetLine.bodyId, {0.0f, targetAltitude}, b2MakeRot(0.0f));
+                    b2Body_SetTransform(targetLine.bodyId, {halfWidth, targetAltitude}, b2MakeRot(0.0f));
                     std::cout << "Target Altitude: " << targetAltitude << std::endl;
                 }
                 if (keyPressed->scancode == sf::Keyboard::Scancode::Down) {
                     targetAltitude -= 10.0f;
                     if (targetAltitude < 0.0f) targetAltitude = 0.0f;
-                    b2Body_SetTransform(targetLine.bodyId, {0.0f, targetAltitude}, b2MakeRot(0.0f));
+                    b2Body_SetTransform(targetLine.bodyId, {halfWidth, targetAltitude}, b2MakeRot(0.0f));
                     std::cout << "Target Altitude: " << targetAltitude << std::endl;
                 }
             }
@@ -125,6 +165,16 @@ int main() {
         // Render
         drawer.clear();
         drawer.drawShapes();
+        
+        // Draw drone sprite at physics body position
+        b2Vec2 dronePos = b2Body_GetPosition(droneBody.bodyId);
+        b2Rot droneRot = b2Body_GetRotation(droneBody.bodyId);
+        float droneAngle = b2Rot_GetAngle(droneRot);
+        
+        sf::Vector2f spritePos = drawer.toWindowLocation(dronePos.x, dronePos.y);
+        droneSprite.setPosition(spritePos);
+        droneSprite.setRotation(sf::degrees(-droneAngle * 180.0f / 3.14159f)); // Convert radians to degrees, negate for SFML
+        drawer.getWindow().draw(droneSprite);
         
         if (showForces) {
             forceDrawer.addNetForce(drawer.getWindow(),

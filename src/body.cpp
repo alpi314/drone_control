@@ -2,7 +2,7 @@
 #include <vector>
 #include "../include/body.hpp"
 
-body::body(b2WorldId worldId, b2Vec2 position, float height, float width, b2BodyType type, bool collide) {
+body::body(b2WorldId worldId, b2Vec2 position, float height, float width, b2BodyType type, bool collide, float density) {
     b2BodyDef bodyDef = b2DefaultBodyDef();
     bodyDef.position = position;
     bodyDef.type = type;
@@ -11,7 +11,7 @@ body::body(b2WorldId worldId, b2Vec2 position, float height, float width, b2Body
     b2Polygon polygon = b2MakeBox(width / 2, height / 2);
 
     b2ShapeDef shapeDef = b2DefaultShapeDef();
-    shapeDef.density = 1.0f;
+    shapeDef.density = density;
     shapeDef.material.friction = 0.3f;
     if (!collide) {
         shapeDef.isSensor = true;
