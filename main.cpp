@@ -101,6 +101,17 @@ int main() {
                     showForces = !showForces;
                     std::cout << "Force Arrows " << (showForces ? "Enabled" : "Disabled") << std::endl;
                 }
+                if (keyPressed->scancode == sf::Keyboard::Scancode::Up) {
+                    targetAltitude += 10.0f;
+                    b2Body_SetTransform(targetLine.bodyId, {0.0f, targetAltitude}, b2MakeRot(0.0f));
+                    std::cout << "Target Altitude: " << targetAltitude << std::endl;
+                }
+                if (keyPressed->scancode == sf::Keyboard::Scancode::Down) {
+                    targetAltitude -= 10.0f;
+                    if (targetAltitude < 0.0f) targetAltitude = 0.0f;
+                    b2Body_SetTransform(targetLine.bodyId, {0.0f, targetAltitude}, b2MakeRot(0.0f));
+                    std::cout << "Target Altitude: " << targetAltitude << std::endl;
+                }
             }
         }
 
